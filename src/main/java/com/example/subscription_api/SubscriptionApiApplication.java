@@ -8,6 +8,8 @@ public class SubscriptionApiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SubscriptionApiApplication.class, args);
+
+		System.out.println("HI");
 	}
 
 }
