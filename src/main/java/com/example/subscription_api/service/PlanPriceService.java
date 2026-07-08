@@ -1,0 +1,98 @@
+package com.example.subscription_api.service;
+
+import com.example.subscription_api.dto.plan_price.PlanPriceRequestDTO;
+import com.example.subscription_api.dto.plan_price.PlanPriceResponseDTO;
+import com.example.subscription_api.entity.Country;
+import com.example.subscription_api.entity.Plan;
+import com.example.subscription_api.entity.PlanPrice;
+import com.example.subscription_api.repository.CountryRepository;
+import com.example.subscription_api.repository.PlanPriceRepository;
+import com.example.subscription_api.repository.PlanRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class PlanPriceService {
+
+    private final PlanPriceRepository planPriceRepository;
+    private final PlanRepository planRepository;
+    private final CountryRepository countryRepository;
+
+    public PlanPriceResponseDTO createPlanPrice(PlanPriceRequestDTO requestDTO) {
+        Plan plan = planRepository.findById(requestDTO.getPlanId())
+                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + requestDTO.getPlanId()));
+
+        Country country = countryRepository.findById(requestDTO.getCountryId())
+                .orElseThrow(() -> new RuntimeException("Country not found with id: " + requestDTO.getCountryId()));
+
+        PlanPrice planPrice = PlanPrice.builder()
+                .plan(plan)
+                .country(country)
+                .cycleLength(requestDTO.getCycleLength())
+                .cycleUnit(requestDTO.getCycleUnit())
+                .amount(requestDTO.getAmount())
+                .currency(requestDTO.getCurrency())
+                .isActive(requestDTO.getIsActive())
+                .build();
+
+        PlanPrice savedPrice = planPriceRepository.save(planPrice);
+        return mapToResponseDTO(savedPrice);
+    }
+
+    public PlanPriceResponseDTO getPlanPriceById(String id) {
+        PlanPrice planPrice = planPriceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plan price not found with id: " + id));
+        return mapToResponseDTO(planPrice);
+    }
+
+    public List<PlanPriceResponseDTO> getAllPlanPrices() {
+        return planPriceRepository.findAll()
+                .stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public PlanPriceResponseDTO updatePlanPrice(String id, PlanPriceRequestDTO requestDTO) {
+        PlanPrice existingPrice = planPriceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plan price not found with id: " + id));
+
+        Plan plan = planRepository.findById(requestDTO.getPlanId())
+                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + requestDTO.getPlanId()));
+        Country country = countryRepository.findById(requestDTO.getCountryId())
+                .orElseThrow(() -> new RuntimeException("Country not found with id: " + requestDTO.getCountryId()));
+
+        existingPrice.setPlan(plan);
+        existingPrice.setCountry(country);
+        existingPrice.setCycleLength(requestDTO.getCycleLength());
+        existingPrice.setCycleUnit(requestDTO.getCycleUnit());
+        existingPrice.setAmount(requestDTO.getAmount());
+        existingPrice.setCurrency(requestDTO.getCurrency());
+        existingPrice.setActive(requestDTO.getIsActive());
+
+        PlanPrice updatedPrice = planPriceRepository.save(existingPrice);
+        return mapToResponseDTO(updatedPrice);
+    }
+
+    public void deletePlanPrice(String id) {
+        PlanPrice existingPrice = planPriceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plan price not found with id: " + id));
+        planPriceRepository.delete(existingPrice);
+    }
+
+    private PlanPriceResponseDTO mapToResponseDTO(PlanPrice planPrice) {
+        return PlanPriceResponseDTO.builder()
+                .id(planPrice.getId())
+                .planId(planPrice.getPlan().getId())
+                .countryId(planPrice.getCountry().getId())
+                .cycleLength(planPrice.getCycleLength())
+                .cycleUnit(planPrice.getCycleUnit())
+                .amount(planPrice.getAmount())
+                .currency(planPrice.getCurrency())
+                .isActive(planPrice.isActive())
+                .build();
+    }
+}
