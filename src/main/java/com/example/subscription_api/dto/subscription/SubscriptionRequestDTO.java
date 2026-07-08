@@ -11,6 +11,9 @@ import lombok.*;
 @Builder
 public class SubscriptionRequestDTO {
 
+    @NotBlank(message = "User ID is required")
+    private String userId;
+
     @NotBlank(message = "Plan Price ID is required")
     private String planPriceId;
 
