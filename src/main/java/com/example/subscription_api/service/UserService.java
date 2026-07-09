@@ -4,6 +4,7 @@ import com.example.subscription_api.dto.user.UserRequestDTO;
 import com.example.subscription_api.dto.user.UserResponseDTO;
 import com.example.subscription_api.entity.User;
 import com.example.subscription_api.repository.UserRepository;
+import com.example.subscription_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ public class UserService {
 
     public UserResponseDTO getUserById(String id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         return mapToResponseDTO(user);
     }
 
@@ -43,7 +44,7 @@ public class UserService {
 
     public UserResponseDTO updateUser(String id, UserRequestDTO requestDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
         existingUser.setFirstName(requestDTO.getFirstName());
         existingUser.setLastName(requestDTO.getLastName());
@@ -56,7 +57,7 @@ public class UserService {
 
     public void deleteUser(String id) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         userRepository.delete(existingUser);
     }
 

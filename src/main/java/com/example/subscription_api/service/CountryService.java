@@ -3,6 +3,7 @@ package com.example.subscription_api.service;
 import com.example.subscription_api.dto.country.CountryRequestDTO;
 import com.example.subscription_api.dto.country.CountryResponseDTO;
 import com.example.subscription_api.entity.Country;
+import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.repository.CountryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,13 +36,13 @@ public class CountryService {
 
     public CountryResponseDTO getCountryById(String id) {
         Country country = countryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Country not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + id));
         return mapToResponseDTO(country);
     }
 
     public CountryResponseDTO updateCountry(String id, CountryRequestDTO requestDTO) {
         Country existingCountry = countryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Country not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + id));
 
         existingCountry.setName(requestDTO.getName());
         existingCountry.setCode(requestDTO.getCode());
@@ -52,7 +53,7 @@ public class CountryService {
 
     public void deleteCountry(String id) {
         Country existingCountry = countryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Country not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + id));
         countryRepository.delete(existingCountry);
     }
 

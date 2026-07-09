@@ -12,36 +12,49 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/cards")
+@RequestMapping("/api/v1/users/{userId}/cards-details")
 @RequiredArgsConstructor
 public class CardDetailsController {
 
     private final CardDetailsService cardDetailsService;
 
-    @PostMapping
-    public ResponseEntity<CardsDetailsResponseDTO> createCardDetails(@Valid @RequestBody CardsDetailsRequestDTO requestDTO) {
-        CardsDetailsResponseDTO createdCard = cardDetailsService.createCardDetails(requestDTO);
-        return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
-    }
-
     @GetMapping
-    public ResponseEntity<List<CardsDetailsResponseDTO>> getAllCardDetails() {
-        return ResponseEntity.ok(cardDetailsService.getAllCardDetails());
+    public ResponseEntity<List<CardsDetailsResponseDTO>> getUserCards(@PathVariable String userId) {
+        return ResponseEntity.ok(cardDetailsService.getAllCardsByUserId(userId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CardsDetailsResponseDTO> getCardDetailsById(@PathVariable String id) {
-        return ResponseEntity.ok(cardDetailsService.getCardDetailsById(id));
+    @PostMapping
+    public ResponseEntity<CardsDetailsResponseDTO> createCard(
+            @PathVariable String userId,
+            @Valid @RequestBody CardsDetailsRequestDTO requestDTO) {
+
+        return new ResponseEntity<>(cardDetailsService.createCard(userId, requestDTO), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CardsDetailsResponseDTO> updateCardDetails(@PathVariable String id, @Valid @RequestBody CardsDetailsRequestDTO requestDTO) {
-        return ResponseEntity.ok(cardDetailsService.updateCardDetails(id, requestDTO));
+    @PutMapping("/{cardId}")
+    public ResponseEntity<CardsDetailsResponseDTO> updateCard(
+            @PathVariable String userId,
+            @PathVariable String cardId,
+            @Valid @RequestBody CardsDetailsRequestDTO requestDTO) {
+
+        return ResponseEntity.ok(cardDetailsService.updateCard(userId, cardId, requestDTO));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCardDetails(@PathVariable String id) {
-        cardDetailsService.deleteCardDetails(id);
+    @DeleteMapping("/{cardId}")
+    public ResponseEntity<Void> deleteCard(
+            @PathVariable String userId,
+            @PathVariable String cardId) {
+
+        cardDetailsService.deleteCard(userId, cardId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{cardId}/default")
+    public ResponseEntity<Void> setDefaultCard(
+            @PathVariable String userId,
+            @PathVariable String cardId) {
+
+        cardDetailsService.setDefaultCard(userId, cardId);
+        return ResponseEntity.ok().build();
     }
 }

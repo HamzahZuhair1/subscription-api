@@ -5,6 +5,7 @@ import com.example.subscription_api.dto.plan_price.PlanPriceResponseDTO;
 import com.example.subscription_api.entity.Country;
 import com.example.subscription_api.entity.Plan;
 import com.example.subscription_api.entity.PlanPrice;
+import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.repository.CountryRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.PlanRepository;
@@ -24,10 +25,10 @@ public class PlanPriceService {
 
     public PlanPriceResponseDTO createPlanPrice(PlanPriceRequestDTO requestDTO) {
         Plan plan = planRepository.findById(requestDTO.getPlanId())
-                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + requestDTO.getPlanId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + requestDTO.getPlanId()));
 
         Country country = countryRepository.findById(requestDTO.getCountryId())
-                .orElseThrow(() -> new RuntimeException("Country not found with id: " + requestDTO.getCountryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + requestDTO.getCountryId()));
 
         PlanPrice planPrice = PlanPrice.builder()
                 .plan(plan)
@@ -45,7 +46,7 @@ public class PlanPriceService {
 
     public PlanPriceResponseDTO getPlanPriceById(String id) {
         PlanPrice planPrice = planPriceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan price not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan price not found with id: " + id));
         return mapToResponseDTO(planPrice);
     }
 
@@ -58,12 +59,12 @@ public class PlanPriceService {
 
     public PlanPriceResponseDTO updatePlanPrice(String id, PlanPriceRequestDTO requestDTO) {
         PlanPrice existingPrice = planPriceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan price not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan price not found with id: " + id));
 
         Plan plan = planRepository.findById(requestDTO.getPlanId())
-                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + requestDTO.getPlanId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + requestDTO.getPlanId()));
         Country country = countryRepository.findById(requestDTO.getCountryId())
-                .orElseThrow(() -> new RuntimeException("Country not found with id: " + requestDTO.getCountryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + requestDTO.getCountryId()));
 
         existingPrice.setPlan(plan);
         existingPrice.setCountry(country);
@@ -79,7 +80,7 @@ public class PlanPriceService {
 
     public void deletePlanPrice(String id) {
         PlanPrice existingPrice = planPriceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan price not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan price not found with id: " + id));
         planPriceRepository.delete(existingPrice);
     }
 

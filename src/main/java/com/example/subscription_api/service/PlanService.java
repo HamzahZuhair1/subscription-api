@@ -3,6 +3,7 @@ package com.example.subscription_api.service;
 import com.example.subscription_api.dto.plan.PlanRequestDTO;
 import com.example.subscription_api.dto.plan.PlanResponseDTO;
 import com.example.subscription_api.entity.Plan;
+import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,13 +37,13 @@ public class PlanService {
 
     public PlanResponseDTO getPlanById(String id) {
         Plan plan = planRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + id));
         return mapToResponseDTO(plan);
     }
 
     public PlanResponseDTO updatePlan(String id, PlanRequestDTO requestDTO) {
         Plan existingPlan = planRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + id));
 
         existingPlan.setName(requestDTO.getName());
         existingPlan.setDescription(requestDTO.getDescription());
@@ -54,7 +55,7 @@ public class PlanService {
 
     public void deletePlan(String id) {
         Plan existingPlan = planRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + id));
         planRepository.delete(existingPlan);
     }
 

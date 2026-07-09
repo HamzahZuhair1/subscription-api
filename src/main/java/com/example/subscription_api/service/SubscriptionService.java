@@ -10,6 +10,7 @@ import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.SubscriptionRepository;
 import com.example.subscription_api.repository.UserRepository;
+import com.example.subscription_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +29,13 @@ public class SubscriptionService {
 
     public SubscriptionResponseDTO createSubscription(SubscriptionRequestDTO requestDTO) {
         User user = userRepository.findById(requestDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + requestDTO.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + requestDTO.getUserId()));
 
         PlanPrice planPrice = planPriceRepository.findById(requestDTO.getPlanPriceId())
-                .orElseThrow(() -> new RuntimeException("Plan Price not found with id: " + requestDTO.getPlanPriceId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan Price not found with id: " + requestDTO.getPlanPriceId()));
 
         CardsDetails cardsDetails = cardsDetailsRepository.findById(requestDTO.getCardDetailsId())
-                .orElseThrow(() -> new RuntimeException("Card Details not found with id: " + requestDTO.getCardDetailsId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Card Details not found with id: " + requestDTO.getCardDetailsId()));
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -63,7 +64,7 @@ public class SubscriptionService {
 
     public SubscriptionResponseDTO getSubscriptionById(String id) {
         Subscription subscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + id));
         return mapToResponseDTO(subscription);
     }
 
@@ -76,10 +77,10 @@ public class SubscriptionService {
 
     public SubscriptionResponseDTO updateSubscription(String id, SubscriptionRequestDTO requestDTO) {
         Subscription existingSubscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + id));
 
         CardsDetails cardsDetails = cardsDetailsRepository.findById(requestDTO.getCardDetailsId())
-                .orElseThrow(() -> new RuntimeException("Card Details not found with id: " + requestDTO.getCardDetailsId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Card Details not found with id: " + requestDTO.getCardDetailsId()));
 
         existingSubscription.setCardsDetails(cardsDetails);
         existingSubscription.setAutoRenew(requestDTO.getAutoRenew());
@@ -90,7 +91,7 @@ public class SubscriptionService {
 
     public void deleteSubscription(String id) {
         Subscription existingSubscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + id));
         subscriptionRepository.delete(existingSubscription);
     }
 
