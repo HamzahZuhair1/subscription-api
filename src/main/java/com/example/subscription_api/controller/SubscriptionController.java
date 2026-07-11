@@ -12,36 +12,53 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/subscriptions")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
 
-    @PostMapping
-    public ResponseEntity<SubscriptionResponseDTO> createSubscription(@Valid @RequestBody SubscriptionRequestDTO requestDTO) {
-        SubscriptionResponseDTO createdSubscription = subscriptionService.createSubscription(requestDTO);
-        return new ResponseEntity<>(createdSubscription, HttpStatus.CREATED);
-    }
 
-    @GetMapping
+    @GetMapping("/subscriptions")
     public ResponseEntity<List<SubscriptionResponseDTO>> getAllSubscriptions() {
         return ResponseEntity.ok(subscriptionService.getAllSubscriptions());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/subscriptions/{id}")
     public ResponseEntity<SubscriptionResponseDTO> getSubscriptionById(@PathVariable String id) {
         return ResponseEntity.ok(subscriptionService.getSubscriptionById(id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<SubscriptionResponseDTO> updateSubscription(@PathVariable String id, @Valid @RequestBody SubscriptionRequestDTO requestDTO) {
-        return ResponseEntity.ok(subscriptionService.updateSubscription(id, requestDTO));
+    @GetMapping("/users/{userId}/subscriptions")
+    public ResponseEntity<List<SubscriptionResponseDTO>> getUserSubscriptions(@PathVariable String userId) {
+        return ResponseEntity.ok(subscriptionService.getUserSubscriptions(userId));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSubscription(@PathVariable String id) {
-        subscriptionService.deleteSubscription(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/users/{userId}/subscriptions")
+    public ResponseEntity<SubscriptionResponseDTO> createSubscription(
+            @PathVariable String userId,
+            @Valid @RequestBody SubscriptionRequestDTO requestDTO) {
+        return new ResponseEntity<>(subscriptionService.createSubscription(userId, requestDTO), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/users/{userId}/subscriptions/inActive")
+    public ResponseEntity<List<SubscriptionResponseDTO>> getInActiveSubscriptions(@PathVariable String userId) {
+        return ResponseEntity.ok(subscriptionService.getInActiveSubscriptions(userId));
+    }
+
+    @PatchMapping("/users/{userId}/subscriptions/{subId}/reNew")
+    public ResponseEntity<Void> renewSubscription(
+            @PathVariable String userId,
+            @PathVariable String subId) {
+        subscriptionService.renewSubscription(userId, subId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/users/{userId}/subscriptions/{subId}/cancel")
+    public ResponseEntity<Void> cancelSubscription(
+            @PathVariable String userId,
+            @PathVariable String subId) {
+        subscriptionService.cancelSubscription(userId, subId);
+        return ResponseEntity.ok().build();
     }
 }

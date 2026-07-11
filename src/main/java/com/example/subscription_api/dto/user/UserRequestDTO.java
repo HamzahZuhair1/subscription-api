@@ -3,6 +3,7 @@ package com.example.subscription_api.dto.user;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.springframework.format.annotation.NumberFormat;
 
 @Getter
 @Setter
@@ -21,5 +22,6 @@ public class UserRequestDTO {
     @Email(message = "Invalid email format")
     private String email;
 
+    @NumberFormat
     private String mobileNumber;
 }

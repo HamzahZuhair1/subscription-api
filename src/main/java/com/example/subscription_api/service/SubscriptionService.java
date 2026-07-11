@@ -6,13 +6,14 @@ import com.example.subscription_api.entity.CardsDetails;
 import com.example.subscription_api.entity.PlanPrice;
 import com.example.subscription_api.entity.Subscription;
 import com.example.subscription_api.entity.User;
+import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.SubscriptionRepository;
 import com.example.subscription_api.repository.UserRepository;
-import com.example.subscription_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,39 +28,10 @@ public class SubscriptionService {
     private final PlanPriceRepository planPriceRepository;
     private final CardsDetailsRepository cardsDetailsRepository;
 
-    public SubscriptionResponseDTO createSubscription(SubscriptionRequestDTO requestDTO) {
-        User user = userRepository.findById(requestDTO.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + requestDTO.getUserId()));
-
-        PlanPrice planPrice = planPriceRepository.findById(requestDTO.getPlanPriceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Plan Price not found with id: " + requestDTO.getPlanPriceId()));
-
-        CardsDetails cardsDetails = cardsDetailsRepository.findById(requestDTO.getCardDetailsId())
-                .orElseThrow(() -> new ResourceNotFoundException("Card Details not found with id: " + requestDTO.getCardDetailsId()));
-
-        LocalDateTime now = LocalDateTime.now();
-
-        LocalDateTime calculatedEndDate = now;
-        if ("MONTH".equalsIgnoreCase(planPrice.getCycleUnit())) {
-            calculatedEndDate = now.plusMonths(planPrice.getCycleLength());
-        } else if ("YEAR".equalsIgnoreCase(planPrice.getCycleUnit())) {
-            calculatedEndDate = now.plusYears(planPrice.getCycleLength());
-        } else if ("DAY".equalsIgnoreCase(planPrice.getCycleUnit())) {
-            calculatedEndDate = now.plusDays(planPrice.getCycleLength());
-        }
-
-        Subscription subscription = Subscription.builder()
-                .user(user)
-                .planPrice(planPrice)
-                .cardsDetails(cardsDetails)
-                .startDate(now)
-                .endDate(calculatedEndDate)
-                .status("ACTIVE")
-                .autoRenew(requestDTO.getAutoRenew())
-                .build();
-
-        Subscription savedSubscription = subscriptionRepository.save(subscription);
-        return mapToResponseDTO(savedSubscription);
+    public List<SubscriptionResponseDTO> getAllSubscriptions() {
+        return subscriptionRepository.findAll().stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
     public SubscriptionResponseDTO getSubscriptionById(String id) {
@@ -68,31 +40,83 @@ public class SubscriptionService {
         return mapToResponseDTO(subscription);
     }
 
-    public List<SubscriptionResponseDTO> getAllSubscriptions() {
-        return subscriptionRepository.findAll()
-                .stream()
+    public List<SubscriptionResponseDTO> getUserSubscriptions(String userId) {
+        checkUserExists(userId);
+        return subscriptionRepository.findByUserId(userId).stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public SubscriptionResponseDTO updateSubscription(String id, SubscriptionRequestDTO requestDTO) {
-        Subscription existingSubscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + id));
+    @Transactional
+    public SubscriptionResponseDTO createSubscription(String userId, SubscriptionRequestDTO requestDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        PlanPrice planPrice = planPriceRepository.findById(requestDTO.getPlanPriceId())
+                .orElseThrow(() -> new ResourceNotFoundException("Plan Price not found"));
 
         CardsDetails cardsDetails = cardsDetailsRepository.findById(requestDTO.getCardDetailsId())
-                .orElseThrow(() -> new ResourceNotFoundException("Card Details not found with id: " + requestDTO.getCardDetailsId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
 
-        existingSubscription.setCardsDetails(cardsDetails);
-        existingSubscription.setAutoRenew(requestDTO.getAutoRenew());
+        if (!cardsDetails.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Card does not belong to this user");
+        }
 
-        Subscription updatedSubscription = subscriptionRepository.save(existingSubscription);
-        return mapToResponseDTO(updatedSubscription);
+        Subscription subscription = Subscription.builder()
+                .user(user)
+                .planPrice(planPrice)
+                .cardsDetails(cardsDetails)
+                .autoRenew(requestDTO.getAutoRenew())
+                .status("ACTIVE")
+                .startDate(LocalDateTime.now())
+                .endDate(LocalDateTime.now().plusMonths(1))
+                .build();
+
+        return mapToResponseDTO(subscriptionRepository.save(subscription));
     }
 
-    public void deleteSubscription(String id) {
-        Subscription existingSubscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + id));
-        subscriptionRepository.delete(existingSubscription);
+    public List<SubscriptionResponseDTO> getInActiveSubscriptions(String userId) {
+        checkUserExists(userId);
+        return subscriptionRepository.findByUserIdAndStatus(userId, "INACTIVE").stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void renewSubscription(String userId, String subId) {
+        checkUserExists(userId);
+        Subscription targetSub = getValidUserSubscription(userId, subId);
+
+        targetSub.setAutoRenew(true);
+        targetSub.setStatus("ACTIVE");
+        targetSub.setEndDate(LocalDateTime.now().plusMonths(1));
+        subscriptionRepository.save(targetSub);
+    }
+
+    @Transactional
+    public void cancelSubscription(String userId, String subId) {
+        checkUserExists(userId);
+        Subscription targetSub = getValidUserSubscription(userId, subId);
+
+        targetSub.setAutoRenew(false);
+        targetSub.setStatus("CANCELED");
+
+        subscriptionRepository.save(targetSub);
+    }
+
+    private void checkUserExists(String userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with id: " + userId);
+        }
+    }
+
+    private Subscription getValidUserSubscription(String userId, String subId) {
+        Subscription subscription = subscriptionRepository.findById(subId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found"));
+        if (!subscription.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Subscription does not belong to this user");
+        }
+        return subscription;
     }
 
     private SubscriptionResponseDTO mapToResponseDTO(Subscription subscription) {
@@ -101,10 +125,10 @@ public class SubscriptionService {
                 .userId(subscription.getUser().getId())
                 .planPriceId(subscription.getPlanPrice().getId())
                 .cardDetailsId(subscription.getCardsDetails().getId())
-                .startDate(subscription.getStartDate())
-                .endDate(subscription.getEndDate())
                 .status(subscription.getStatus())
                 .autoRenew(subscription.isAutoRenew())
+                .startDate(subscription.getStartDate())
+                .endDate(subscription.getEndDate())
                 .build();
     }
 }
