@@ -5,6 +5,11 @@ import com.example.subscription_api.dto.user.UserResponseDTO;
 import com.example.subscription_api.entity.User;
 import com.example.subscription_api.repository.UserRepository;
 import com.example.subscription_api.exception.ResourceNotFoundException;
+import com.example.subscription_api.exception.DuplicateResourceException;
+import com.example.subscription_api.exception.InvalidPhoneNumberException; // سيتم إنشاؤه
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +23,16 @@ public class UserService {
     private final UserRepository userRepository;
 
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
+
+        validateAndExtractCountryCode(requestDTO.getMobileNumber());
+
+        if (userRepository.existsByEmail(requestDTO.getEmail())) {
+            throw new DuplicateResourceException("Email is already in use");
+        }
+        if (userRepository.existsByMobileNumber(requestDTO.getMobileNumber())) {
+            throw new DuplicateResourceException("Mobile number is already in use");
+        }
+
         User user = User.builder()
                 .firstName(requestDTO.getFirstName())
                 .lastName(requestDTO.getLastName())
@@ -46,6 +61,15 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
+        validateAndExtractCountryCode(requestDTO.getMobileNumber());
+
+        if (userRepository.existsByEmailAndIdNot(requestDTO.getEmail(), id)) {
+            throw new DuplicateResourceException("Email is already in use by another user");
+        }
+        if (userRepository.existsByMobileNumberAndIdNot(requestDTO.getMobileNumber(), id)) {
+            throw new DuplicateResourceException("Mobile number is already in use by another user");
+        }
+
         existingUser.setFirstName(requestDTO.getFirstName());
         existingUser.setLastName(requestDTO.getLastName());
         existingUser.setEmail(requestDTO.getEmail());
@@ -70,5 +94,21 @@ public class UserService {
                 .mobileNumber(user.getMobileNumber())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    public String validateAndExtractCountryCode(String mobileNumber) {
+        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+        try {
+            Phonenumber.PhoneNumber number = phoneUtil.parse(mobileNumber, null);
+
+            if (!phoneUtil.isValidNumber(number)) {
+                throw new InvalidPhoneNumberException("Invalid mobile number: Does not belong to any country or has incorrect length.");
+            }
+
+            return phoneUtil.getRegionCodeForNumber(number);
+
+        } catch (NumberParseException e) {
+            throw new InvalidPhoneNumberException("Invalid mobile number format.");
+        }
     }
 }

@@ -22,6 +22,5 @@ public class UserRequestDTO {
     @Email(message = "Invalid email format")
     private String email;
 
-    @NumberFormat
     private String mobileNumber;
 }
