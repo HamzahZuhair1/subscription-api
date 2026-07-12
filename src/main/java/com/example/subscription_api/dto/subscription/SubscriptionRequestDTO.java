@@ -21,5 +21,6 @@ public class SubscriptionRequestDTO {
     private String cardDetailsId;
 
     @NotNull(message = "Auto renew preference must be specified")
-    private Boolean autoRenew;
+    @Builder.Default
+    private Boolean autoRenew = true;
 }

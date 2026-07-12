@@ -1,5 +1,6 @@
 package com.example.subscription_api.dto.subscription;
 
+import com.example.subscription_api.enums.SubscriptionStatus;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -15,6 +16,6 @@ public class SubscriptionResponseDTO {
     private String cardDetailsId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private String status;
+    private SubscriptionStatus status;
     private boolean autoRenew;
 }

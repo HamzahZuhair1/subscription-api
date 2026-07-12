@@ -1,5 +1,6 @@
 package com.example.subscription_api.entity;
 
+import com.example.subscription_api.enums.CycleUnit;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,8 +28,9 @@ public class PlanPrice {
     @Column(name = "cycle_length", nullable = false)
     private int cycleLength;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "cycle_unit", nullable = false)
-    private String cycleUnit;
+    private CycleUnit cycleUnit;
 
     @Column(name = "amount", nullable = false)
     private long amount;

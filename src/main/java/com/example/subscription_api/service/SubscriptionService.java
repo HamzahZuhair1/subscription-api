@@ -6,6 +6,7 @@ import com.example.subscription_api.entity.CardsDetails;
 import com.example.subscription_api.entity.PlanPrice;
 import com.example.subscription_api.entity.Subscription;
 import com.example.subscription_api.entity.User;
+import com.example.subscription_api.enums.SubscriptionStatus;
 import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
@@ -62,14 +63,16 @@ public class SubscriptionService {
             throw new IllegalArgumentException("Card does not belong to this user");
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
         Subscription subscription = Subscription.builder()
                 .user(user)
                 .planPrice(planPrice)
                 .cardsDetails(cardsDetails)
                 .autoRenew(requestDTO.getAutoRenew())
-                .status("ACTIVE")
-                .startDate(LocalDateTime.now())
-                .endDate(LocalDateTime.now().plusMonths(1))
+                .status(SubscriptionStatus.ACTIVE)
+                .startDate(now)
+                .endDate(calculateEndDate(now, planPrice))
                 .build();
 
         return mapToResponseDTO(subscriptionRepository.save(subscription));
@@ -77,7 +80,7 @@ public class SubscriptionService {
 
     public List<SubscriptionResponseDTO> getInActiveSubscriptions(String userId) {
         checkUserExists(userId);
-        return subscriptionRepository.findByUserIdAndStatus(userId, "INACTIVE").stream()
+        return subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.INACTIVE).stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -88,8 +91,14 @@ public class SubscriptionService {
         Subscription targetSub = getValidUserSubscription(userId, subId);
 
         targetSub.setAutoRenew(true);
-        targetSub.setStatus("ACTIVE");
-        targetSub.setEndDate(LocalDateTime.now().plusMonths(1));
+        targetSub.setStatus(SubscriptionStatus.ACTIVE);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime baseDate = targetSub.getEndDate().isAfter(now) ? targetSub.getEndDate() : now;
+
+        targetSub.setEndDate(calculateEndDate(baseDate, targetSub.getPlanPrice()));
+
         subscriptionRepository.save(targetSub);
     }
 
@@ -99,9 +108,14 @@ public class SubscriptionService {
         Subscription targetSub = getValidUserSubscription(userId, subId);
 
         targetSub.setAutoRenew(false);
-        targetSub.setStatus("CANCELED");
+        targetSub.setStatus(SubscriptionStatus.CANCELED);
 
         subscriptionRepository.save(targetSub);
+    }
+
+    private LocalDateTime calculateEndDate(LocalDateTime startDate, PlanPrice planPrice) {
+        int totalDays = planPrice.getCycleLength() * planPrice.getCycleUnit().getDaysValue();
+        return startDate.plusDays(totalDays);
     }
 
     private void checkUserExists(String userId) {

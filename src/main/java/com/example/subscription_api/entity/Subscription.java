@@ -1,5 +1,6 @@
 package com.example.subscription_api.entity;
 
+import com.example.subscription_api.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -36,7 +37,9 @@ public class Subscription {
     private LocalDateTime endDate;
 
     @Column(name = "status", nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
 
     @Column(name = "auto_renew", nullable = false)
     private boolean autoRenew;

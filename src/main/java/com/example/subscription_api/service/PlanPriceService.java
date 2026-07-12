@@ -90,7 +90,7 @@ public class PlanPriceService {
                 .planId(planPrice.getPlan().getId())
                 .countryId(planPrice.getCountry().getId())
                 .cycleLength(planPrice.getCycleLength())
-                .cycleUnit(planPrice.getCycleUnit())
+                .cycleUnit(String.valueOf(planPrice.getCycleUnit()))
                 .amount(planPrice.getAmount())
                 .currency(planPrice.getCurrency())
                 .isActive(planPrice.isActive())

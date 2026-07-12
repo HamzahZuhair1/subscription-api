@@ -3,7 +3,6 @@ package com.example.subscription_api.controller;
 import com.example.subscription_api.dto.user.UserRequestDTO;
 import com.example.subscription_api.dto.user.UserResponseDTO;
 import com.example.subscription_api.service.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,21 +11,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO requestDTO) {
-        UserResponseDTO createdUser = userService.createUser(requestDTO);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-    }
-
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @PostMapping
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO requestDTO) {
+        return new ResponseEntity<>(userService.createUser(requestDTO), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
@@ -35,7 +33,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String id, @Valid @RequestBody UserRequestDTO requestDTO) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String id, @RequestBody UserRequestDTO requestDTO) {
         return ResponseEntity.ok(userService.updateUser(id, requestDTO));
     }
 
