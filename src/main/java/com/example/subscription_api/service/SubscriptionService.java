@@ -13,6 +13,9 @@ import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.SubscriptionRepository;
 import com.example.subscription_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +32,9 @@ public class SubscriptionService {
     private final PlanPriceRepository planPriceRepository;
     private final CardsDetailsRepository cardsDetailsRepository;
 
-    public List<SubscriptionResponseDTO> getAllSubscriptions() {
-        return subscriptionRepository.findAll().stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<SubscriptionResponseDTO> getAllSubscriptions(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return subscriptionRepository.findAll(pageable).map(this::mapToResponseDTO);
     }
 
     public SubscriptionResponseDTO getSubscriptionById(String id) {

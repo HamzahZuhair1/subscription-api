@@ -11,6 +11,9 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,11 +53,10 @@ public class UserService {
         return mapToResponseDTO(user);
     }
 
-    public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<UserResponseDTO> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAll(pageable)
+                .map(this::mapToResponseDTO);
     }
 
     public UserResponseDTO updateUser(String id, UserRequestDTO requestDTO) {

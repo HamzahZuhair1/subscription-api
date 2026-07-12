@@ -10,6 +10,9 @@ import com.example.subscription_api.repository.CountryRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,11 +53,10 @@ public class PlanPriceService {
         return mapToResponseDTO(planPrice);
     }
 
-    public List<PlanPriceResponseDTO> getAllPlanPrices() {
-        return planPriceRepository.findAll()
-                .stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<PlanPriceResponseDTO> getAllPlanPrices(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return planPriceRepository.findAll(pageable)
+                .map(this::mapToResponseDTO);
     }
 
     public PlanPriceResponseDTO updatePlanPrice(String id, PlanPriceRequestDTO requestDTO) {
@@ -90,7 +92,7 @@ public class PlanPriceService {
                 .planId(planPrice.getPlan().getId())
                 .countryId(planPrice.getCountry().getId())
                 .cycleLength(planPrice.getCycleLength())
-                .cycleUnit(String.valueOf(planPrice.getCycleUnit()))
+                .cycleUnit(planPrice.getCycleUnit())
                 .amount(planPrice.getAmount())
                 .currency(planPrice.getCurrency())
                 .isActive(planPrice.isActive())

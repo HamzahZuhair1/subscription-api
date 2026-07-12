@@ -1,5 +1,6 @@
 package com.example.subscription_api.dto.plan_price;
 
+import com.example.subscription_api.enums.CycleUnit;
 import lombok.*;
 
 @Getter
@@ -12,7 +13,7 @@ public class PlanPriceResponseDTO {
     private String planId;
     private String countryId;
     private int cycleLength;
-    private String cycleUnit;
+    private CycleUnit cycleUnit;
     private long amount;
     private String currency;
     private boolean isActive;

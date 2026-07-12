@@ -5,6 +5,7 @@ import com.example.subscription_api.dto.subscription.SubscriptionResponseDTO;
 import com.example.subscription_api.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +20,11 @@ public class SubscriptionController {
     private final SubscriptionService subscriptionService;
 
     @GetMapping("/subscriptions")
-    public ResponseEntity<List<SubscriptionResponseDTO>> getAllSubscriptions() {
-        return ResponseEntity.ok(subscriptionService.getAllSubscriptions());
+    public ResponseEntity<Page<SubscriptionResponseDTO>> getAllSubscriptions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(subscriptionService.getAllSubscriptions(page, size));
     }
 
     @GetMapping("/subscriptions/{id}")
