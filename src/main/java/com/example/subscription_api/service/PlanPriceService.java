@@ -6,6 +6,7 @@ import com.example.subscription_api.entity.Country;
 import com.example.subscription_api.entity.Plan;
 import com.example.subscription_api.entity.PlanPrice;
 import com.example.subscription_api.exception.ResourceNotFoundException;
+import com.example.subscription_api.mapper.PlanPriceMapper;
 import com.example.subscription_api.repository.CountryRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.PlanRepository;
@@ -25,6 +26,7 @@ public class PlanPriceService {
     private final PlanPriceRepository planPriceRepository;
     private final PlanRepository planRepository;
     private final CountryRepository countryRepository;
+    private final PlanPriceMapper planPriceMapper;
 
     public PlanPriceResponseDTO createPlanPrice(PlanPriceRequestDTO requestDTO) {
         Plan plan = planRepository.findById(requestDTO.getPlanId())
@@ -44,19 +46,19 @@ public class PlanPriceService {
                 .build();
 
         PlanPrice savedPrice = planPriceRepository.save(planPrice);
-        return mapToResponseDTO(savedPrice);
+        return planPriceMapper.toResponseDTO(savedPrice);
     }
 
     public PlanPriceResponseDTO getPlanPriceById(String id) {
         PlanPrice planPrice = planPriceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan price not found with id: " + id));
-        return mapToResponseDTO(planPrice);
+        return planPriceMapper.toResponseDTO(planPrice);
     }
 
     public Page<PlanPriceResponseDTO> getAllPlanPrices(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return planPriceRepository.findAll(pageable)
-                .map(this::mapToResponseDTO);
+                .map(planPriceMapper::toResponseDTO);
     }
 
     public PlanPriceResponseDTO updatePlanPrice(String id, PlanPriceRequestDTO requestDTO) {
@@ -77,7 +79,7 @@ public class PlanPriceService {
         existingPrice.setActive(requestDTO.getIsActive());
 
         PlanPrice updatedPrice = planPriceRepository.save(existingPrice);
-        return mapToResponseDTO(updatedPrice);
+        return planPriceMapper.toResponseDTO(updatedPrice);
     }
 
     public void deletePlanPrice(String id) {
@@ -86,16 +88,5 @@ public class PlanPriceService {
         planPriceRepository.delete(existingPrice);
     }
 
-    private PlanPriceResponseDTO mapToResponseDTO(PlanPrice planPrice) {
-        return PlanPriceResponseDTO.builder()
-                .id(planPrice.getId())
-                .planId(planPrice.getPlan().getId())
-                .countryId(planPrice.getCountry().getId())
-                .cycleLength(planPrice.getCycleLength())
-                .cycleUnit(planPrice.getCycleUnit())
-                .amount(planPrice.getAmount())
-                .currency(planPrice.getCurrency())
-                .isActive(planPrice.isActive())
-                .build();
-    }
+
 }

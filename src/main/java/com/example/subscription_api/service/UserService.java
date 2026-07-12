@@ -3,6 +3,7 @@ package com.example.subscription_api.service;
 import com.example.subscription_api.dto.user.UserRequestDTO;
 import com.example.subscription_api.dto.user.UserResponseDTO;
 import com.example.subscription_api.entity.User;
+import com.example.subscription_api.mapper.UserMapper;
 import com.example.subscription_api.repository.UserRepository;
 import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.exception.DuplicateResourceException;
@@ -27,6 +28,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PhoneNumberValidator phoneNumberValidator;
+    private final UserMapper userMapper;
 
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
 
@@ -50,19 +52,19 @@ public class UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        return mapToResponseDTO(savedUser);
+        return userMapper.toResponseDTO(savedUser);
     }
 
     public UserResponseDTO getUserById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        return mapToResponseDTO(user);
+        return userMapper.toResponseDTO(user);
     }
 
     public Page<UserResponseDTO> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return userRepository.findAll(pageable)
-                .map(this::mapToResponseDTO);
+                .map(userMapper::toResponseDTO);
     }
 
     public UserResponseDTO updateUser(String id, UserRequestDTO requestDTO) {
@@ -93,7 +95,7 @@ public class UserService {
         existingUser.setMobileNumber(requestDTO.getMobileNumber());
 
         User updatedUser = userRepository.save(existingUser);
-        return mapToResponseDTO(updatedUser);
+        return userMapper.toResponseDTO(updatedUser);
     }
 
     public void deleteUser(String id) {
@@ -101,16 +103,4 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         userRepository.delete(existingUser);
     }
-
-    private UserResponseDTO mapToResponseDTO(User user) {
-        return UserResponseDTO.builder()
-                .id(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .mobileNumber(user.getMobileNumber())
-                .createdAt(user.getCreatedAt())
-                .build();
-    }
-
 }

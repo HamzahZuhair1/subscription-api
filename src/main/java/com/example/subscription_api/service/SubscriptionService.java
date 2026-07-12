@@ -8,6 +8,7 @@ import com.example.subscription_api.entity.Subscription;
 import com.example.subscription_api.entity.User;
 import com.example.subscription_api.enums.SubscriptionStatus;
 import com.example.subscription_api.exception.ResourceNotFoundException;
+import com.example.subscription_api.mapper.SubscriptionMapper;
 import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.SubscriptionRepository;
@@ -31,22 +32,23 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final PlanPriceRepository planPriceRepository;
     private final CardsDetailsRepository cardsDetailsRepository;
+    private final SubscriptionMapper subscriptionMapper;
 
     public Page<SubscriptionResponseDTO> getAllSubscriptions(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return subscriptionRepository.findAll(pageable).map(this::mapToResponseDTO);
+        return subscriptionRepository.findAll(pageable).map(subscriptionMapper::toResponseDTO);
     }
 
     public SubscriptionResponseDTO getSubscriptionById(String id) {
         Subscription subscription = subscriptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + id));
-        return mapToResponseDTO(subscription);
+        return subscriptionMapper.toResponseDTO(subscription);
     }
 
     public List<SubscriptionResponseDTO> getUserSubscriptions(String userId) {
         checkUserExists(userId);
         return subscriptionRepository.findByUserId(userId).stream()
-                .map(this::mapToResponseDTO)
+                .map(subscriptionMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -77,13 +79,13 @@ public class SubscriptionService {
                 .endDate(calculateEndDate(now, planPrice))
                 .build();
 
-        return mapToResponseDTO(subscriptionRepository.save(subscription));
+        return subscriptionMapper.toResponseDTO(subscriptionRepository.save(subscription));
     }
 
     public List<SubscriptionResponseDTO> getInActiveSubscriptions(String userId) {
         checkUserExists(userId);
         return subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.INACTIVE).stream()
-                .map(this::mapToResponseDTO)
+                .map(subscriptionMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -135,16 +137,5 @@ public class SubscriptionService {
         return subscription;
     }
 
-    private SubscriptionResponseDTO mapToResponseDTO(Subscription subscription) {
-        return SubscriptionResponseDTO.builder()
-                .id(subscription.getId())
-                .userId(subscription.getUser().getId())
-                .planPriceId(subscription.getPlanPrice().getId())
-                .cardDetailsId(subscription.getCardsDetails().getId())
-                .status(subscription.getStatus())
-                .autoRenew(subscription.isAutoRenew())
-                .startDate(subscription.getStartDate())
-                .endDate(subscription.getEndDate())
-                .build();
-    }
+
 }

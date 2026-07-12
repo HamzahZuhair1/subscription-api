@@ -5,6 +5,7 @@ import com.example.subscription_api.dto.cards_details.CardsDetailsResponseDTO;
 import com.example.subscription_api.entity.CardsDetails;
 import com.example.subscription_api.entity.User;
 import com.example.subscription_api.exception.ResourceNotFoundException;
+import com.example.subscription_api.mapper.CardsDetailsMapper;
 import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class CardDetailsService {
 
     private final CardsDetailsRepository cardsDetailsRepository;
     private final UserRepository userRepository;
+    private final CardsDetailsMapper cardsDetailsMapper;
 
     public List<CardsDetailsResponseDTO> getAllCardsByUserId(String userId) {
         if (!userRepository.existsById(userId)) {
@@ -28,7 +30,7 @@ public class CardDetailsService {
 
         return cardsDetailsRepository.findByUserId(userId)
                 .stream()
-                .map(this::mapToResponseDTO)
+                .map(cardsDetailsMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -58,7 +60,7 @@ public class CardDetailsService {
                 .build();
 
         CardsDetails savedCard = cardsDetailsRepository.save(cardDetails);
-        return mapToResponseDTO(savedCard);
+        return cardsDetailsMapper.toResponseDTO(savedCard);
     }
 
     public CardsDetailsResponseDTO updateCard(String userId, String cardId, CardsDetailsRequestDTO requestDTO) {
@@ -79,7 +81,7 @@ public class CardDetailsService {
         existingCard.setPaymentToken(requestDTO.getPaymentToken());
 
         CardsDetails updatedCard = cardsDetailsRepository.save(existingCard);
-        return mapToResponseDTO(updatedCard);
+        return cardsDetailsMapper.toResponseDTO(updatedCard);
     }
 
     public void deleteCard(String userId, String cardId) {
@@ -116,13 +118,5 @@ public class CardDetailsService {
         cardsDetailsRepository.saveAll(userCards);
     }
 
-    private CardsDetailsResponseDTO mapToResponseDTO(CardsDetails cardsDetails) {
-        return CardsDetailsResponseDTO.builder()
-                .id(cardsDetails.getId())
-                .cardHolderName(cardsDetails.getCardHolderName())
-                .cardBrand(cardsDetails.getCardBrand())
-                .lastFourDigits(cardsDetails.getLastFourDigits())
-                .isDefault(cardsDetails.isDefault())
-                .build();
-    }
+
 }

@@ -4,6 +4,7 @@ import com.example.subscription_api.dto.country.CountryRequestDTO;
 import com.example.subscription_api.dto.country.CountryResponseDTO;
 import com.example.subscription_api.entity.Country;
 import com.example.subscription_api.exception.ResourceNotFoundException;
+import com.example.subscription_api.mapper.CountryMapper;
 import com.example.subscription_api.repository.CountryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 public class CountryService {
 
     private final CountryRepository countryRepository;
-
+    private final CountryMapper countryMapper;
     public CountryResponseDTO createCountry(CountryRequestDTO requestDTO) {
         Country country = Country.builder()
                 .name(requestDTO.getName())
@@ -24,20 +25,20 @@ public class CountryService {
                 .build();
 
         Country savedCountry = countryRepository.save(country);
-        return mapToResponseDTO(savedCountry);
+        return countryMapper.toResponseDTO(savedCountry);
     }
 
     public List<CountryResponseDTO> getAllCountries() {
         return countryRepository.findAll()
                 .stream()
-                .map(this::mapToResponseDTO)
+                .map(countryMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public CountryResponseDTO getCountryById(String id) {
         Country country = countryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + id));
-        return mapToResponseDTO(country);
+        return countryMapper.toResponseDTO(country);
     }
 
     public CountryResponseDTO updateCountry(String id, CountryRequestDTO requestDTO) {
@@ -48,7 +49,7 @@ public class CountryService {
         existingCountry.setCode(requestDTO.getCode());
 
         Country updatedCountry = countryRepository.save(existingCountry);
-        return mapToResponseDTO(updatedCountry);
+        return countryMapper.toResponseDTO(updatedCountry);
     }
 
     public void deleteCountry(String id) {
@@ -57,11 +58,5 @@ public class CountryService {
         countryRepository.delete(existingCountry);
     }
 
-    private CountryResponseDTO mapToResponseDTO(Country country) {
-        return CountryResponseDTO.builder()
-                .id(country.getId())
-                .name(country.getName())
-                .code(country.getCode())
-                .build();
-    }
+
 }

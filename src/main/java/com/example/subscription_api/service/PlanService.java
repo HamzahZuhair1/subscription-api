@@ -4,6 +4,7 @@ import com.example.subscription_api.dto.plan.PlanRequestDTO;
 import com.example.subscription_api.dto.plan.PlanResponseDTO;
 import com.example.subscription_api.entity.Plan;
 import com.example.subscription_api.exception.ResourceNotFoundException;
+import com.example.subscription_api.mapper.PlanMapper;
 import com.example.subscription_api.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class PlanService {
 
     private final PlanRepository planRepository;
+    private final PlanMapper planMapper;
 
     public PlanResponseDTO createPlan(PlanRequestDTO requestDTO) {
         Plan plan = Plan.builder()
@@ -25,20 +27,20 @@ public class PlanService {
                 .build();
 
         Plan savedPlan = planRepository.save(plan);
-        return mapToResponseDTO(savedPlan);
+        return planMapper.toResponseDTO(savedPlan);
     }
 
     public List<PlanResponseDTO> getAllPlans() {
         return planRepository.findAll()
                 .stream()
-                .map(this::mapToResponseDTO)
+                .map(planMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public PlanResponseDTO getPlanById(String id) {
         Plan plan = planRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + id));
-        return mapToResponseDTO(plan);
+        return planMapper.toResponseDTO(plan);
     }
 
     public PlanResponseDTO updatePlan(String id, PlanRequestDTO requestDTO) {
@@ -50,7 +52,7 @@ public class PlanService {
         existingPlan.setActive(requestDTO.getIsActive());
 
         Plan updatedPlan = planRepository.save(existingPlan);
-        return mapToResponseDTO(updatedPlan);
+        return planMapper.toResponseDTO(updatedPlan);
     }
 
     public void deletePlan(String id) {
@@ -59,12 +61,4 @@ public class PlanService {
         planRepository.delete(existingPlan);
     }
 
-    private PlanResponseDTO mapToResponseDTO(Plan plan) {
-        return PlanResponseDTO.builder()
-                .id(plan.getId())
-                .name(plan.getName())
-                .description(plan.getDescription())
-                .isActive(plan.isActive())
-                .build();
-    }
 }
