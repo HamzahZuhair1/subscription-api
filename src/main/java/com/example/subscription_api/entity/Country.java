@@ -3,6 +3,9 @@ package com.example.subscription_api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "countries")
 @Getter
@@ -21,4 +24,8 @@ public class Country {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<PlanPrice> planPrices = new ArrayList<>();
 }
