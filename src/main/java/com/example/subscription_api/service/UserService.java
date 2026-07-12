@@ -7,6 +7,7 @@ import com.example.subscription_api.repository.UserRepository;
 import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.exception.DuplicateResourceException;
 import com.example.subscription_api.exception.InvalidPhoneNumberException;
+import com.example.subscription_api.validation.PhoneNumberValidator;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
@@ -25,10 +26,11 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PhoneNumberValidator phoneNumberValidator;
 
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
 
-        validateAndExtractCountryCode(requestDTO.getMobileNumber());
+        phoneNumberValidator.validate(requestDTO.getMobileNumber());
 
         Optional<User> existingUser = userRepository.findFirstByEmailOrMobileNumber(requestDTO.getEmail(), requestDTO.getMobileNumber());
         if (existingUser.isPresent()) {
@@ -67,7 +69,7 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
-        validateAndExtractCountryCode(requestDTO.getMobileNumber());
+        phoneNumberValidator.validate(requestDTO.getMobileNumber());
 
         boolean emailChanged = !existingUser.getEmail().equals(requestDTO.getEmail());
         boolean phoneChanged = !existingUser.getMobileNumber().equals(requestDTO.getMobileNumber());
@@ -111,19 +113,4 @@ public class UserService {
                 .build();
     }
 
-    public String validateAndExtractCountryCode(String mobileNumber) {
-        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
-        try {
-            Phonenumber.PhoneNumber number = phoneUtil.parse(mobileNumber, null);
-
-            if (!phoneUtil.isValidNumber(number)) {
-                throw new InvalidPhoneNumberException("Invalid mobile number: Does not belong to any country or has incorrect length.");
-            }
-
-            return phoneUtil.getRegionCodeForNumber(number);
-
-        } catch (NumberParseException e) {
-            throw new InvalidPhoneNumberException("Invalid mobile number format.");
-        }
-    }
 }
