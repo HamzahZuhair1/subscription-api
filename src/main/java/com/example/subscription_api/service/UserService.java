@@ -93,8 +93,9 @@ public class UserService {
     }
 
     public void deleteUser(String id) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        userRepository.delete(existingUser);
+        int numberOfDeletedUsers = userRepository.deleteByIdEquals(id);
+        if (numberOfDeletedUsers == 0){
+            throw new ResourceNotFoundException("User not found with id: " + id);
+        }
     }
 }

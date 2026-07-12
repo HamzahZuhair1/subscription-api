@@ -13,7 +13,7 @@
         import java.util.List;
 
         @RestController
-        @RequestMapping("${api.prefix}/plan-prices")
+        @RequestMapping("/plan-prices")
         @RequiredArgsConstructor
         public class PlanPriceController {
 
