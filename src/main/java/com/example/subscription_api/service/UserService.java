@@ -6,7 +6,7 @@ import com.example.subscription_api.entity.User;
 import com.example.subscription_api.repository.UserRepository;
 import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.exception.DuplicateResourceException;
-import com.example.subscription_api.exception.InvalidPhoneNumberException; // سيتم إنشاؤه
+import com.example.subscription_api.exception.InvalidPhoneNumberException;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,11 +30,14 @@ public class UserService {
 
         validateAndExtractCountryCode(requestDTO.getMobileNumber());
 
-        if (userRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new DuplicateResourceException("Email is already in use");
-        }
-        if (userRepository.existsByMobileNumber(requestDTO.getMobileNumber())) {
-            throw new DuplicateResourceException("Mobile number is already in use");
+        Optional<User> existingUser = userRepository.findFirstByEmailOrMobileNumber(requestDTO.getEmail(), requestDTO.getMobileNumber());
+        if (existingUser.isPresent()) {
+            if (existingUser.get().getEmail().equals(requestDTO.getEmail()))
+                throw new DuplicateResourceException("Email is already in use");
+
+            if (existingUser.get().getMobileNumber().equals(requestDTO.getMobileNumber()))
+                throw new DuplicateResourceException("Mobile number is already in use");
+
         }
 
         User user = User.builder()
@@ -65,11 +69,20 @@ public class UserService {
 
         validateAndExtractCountryCode(requestDTO.getMobileNumber());
 
-        if (userRepository.existsByEmailAndIdNot(requestDTO.getEmail(), id)) {
-            throw new DuplicateResourceException("Email is already in use by another user");
-        }
-        if (userRepository.existsByMobileNumberAndIdNot(requestDTO.getMobileNumber(), id)) {
-            throw new DuplicateResourceException("Mobile number is already in use by another user");
+        boolean emailChanged = !existingUser.getEmail().equals(requestDTO.getEmail());
+        boolean phoneChanged = !existingUser.getMobileNumber().equals(requestDTO.getMobileNumber());
+
+        if (emailChanged || phoneChanged) {
+            Optional<User> conflictUser = userRepository.findFirstByEmailOrMobileNumber(requestDTO.getEmail(), requestDTO.getMobileNumber());
+
+            if (conflictUser.isPresent() && !conflictUser.get().getId().equals(id)) {
+                if (conflictUser.get().getEmail().equals(requestDTO.getEmail()))
+                    throw new DuplicateResourceException("Email is already in use by another user");
+
+                if (conflictUser.get().getMobileNumber().equals(requestDTO.getMobileNumber()))
+                    throw new DuplicateResourceException("Mobile number is already in use by another user");
+
+            }
         }
 
         existingUser.setFirstName(requestDTO.getFirstName());
