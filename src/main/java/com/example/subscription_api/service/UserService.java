@@ -7,20 +7,14 @@ import com.example.subscription_api.mapper.UserMapper;
 import com.example.subscription_api.repository.UserRepository;
 import com.example.subscription_api.exception.ResourceNotFoundException;
 import com.example.subscription_api.exception.DuplicateResourceException;
-import com.example.subscription_api.exception.InvalidPhoneNumberException;
 import com.example.subscription_api.validation.PhoneNumberValidator;
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

@@ -13,6 +13,7 @@ import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.SubscriptionRepository;
 import com.example.subscription_api.repository.UserRepository;
+import com.example.subscription_api.util.DateTimeUtil; // <-- استدعاء الـ Util
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +34,7 @@ public class SubscriptionService {
     private final PlanPriceRepository planPriceRepository;
     private final CardsDetailsRepository cardsDetailsRepository;
     private final SubscriptionMapper subscriptionMapper;
+    private final DateTimeUtil dateTimeUtil;
 
     public Page<SubscriptionResponseDTO> getAllSubscriptions(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -67,7 +69,7 @@ public class SubscriptionService {
             throw new IllegalArgumentException("Card does not belong to this user");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = dateTimeUtil.now();
 
         Subscription subscription = Subscription.builder()
                 .user(user)
@@ -76,7 +78,7 @@ public class SubscriptionService {
                 .autoRenew(requestDTO.getAutoRenew())
                 .status(SubscriptionStatus.ACTIVE)
                 .startDate(now)
-                .endDate(calculateEndDate(now, planPrice))
+                .endDate(dateTimeUtil.calculateEndDate(now, planPrice.getCycleLength(), planPrice.getCycleUnit().getDaysValue()))
                 .build();
 
         return subscriptionMapper.toResponseDTO(subscriptionRepository.save(subscription));
@@ -97,11 +99,8 @@ public class SubscriptionService {
         targetSub.setAutoRenew(true);
         targetSub.setStatus(SubscriptionStatus.ACTIVE);
 
-        LocalDateTime now = LocalDateTime.now();
-
-        LocalDateTime baseDate = targetSub.getEndDate().isAfter(now) ? targetSub.getEndDate() : now;
-
-        targetSub.setEndDate(calculateEndDate(baseDate, targetSub.getPlanPrice()));
+        LocalDateTime baseDate = dateTimeUtil.getRenewalBaseDate(targetSub.getEndDate());
+        targetSub.setEndDate(dateTimeUtil.calculateEndDate(baseDate, targetSub.getPlanPrice().getCycleLength(), targetSub.getPlanPrice().getCycleUnit().getDaysValue()));
 
         subscriptionRepository.save(targetSub);
     }
@@ -115,11 +114,6 @@ public class SubscriptionService {
         targetSub.setStatus(SubscriptionStatus.CANCELED);
 
         subscriptionRepository.save(targetSub);
-    }
-
-    private LocalDateTime calculateEndDate(LocalDateTime startDate, PlanPrice planPrice) {
-        int totalDays = planPrice.getCycleLength() * planPrice.getCycleUnit().getDaysValue();
-        return startDate.plusDays(totalDays);
     }
 
     private void checkUserExists(String userId) {
@@ -136,6 +130,4 @@ public class SubscriptionService {
         }
         return subscription;
     }
-
-
 }
