@@ -130,4 +130,24 @@ public class SubscriptionService {
         }
         return subscription;
     }
+
+    @Transactional
+    public void processExpiredSubscriptions() {
+        LocalDateTime now = dateTimeUtil.now();
+        List<Subscription> expiredSubscriptions = subscriptionRepository.findByStatusAndEndDateBefore(SubscriptionStatus.ACTIVE, now);
+
+        for (Subscription sub : expiredSubscriptions) {
+            if (sub.isAutoRenew()) {
+                try {
+                    renewSubscription(sub.getUser().getId(), sub.getId());
+                } catch (Exception e) {
+                    sub.setStatus(SubscriptionStatus.INACTIVE);
+                    subscriptionRepository.save(sub);
+                }
+            } else {
+                sub.setStatus(SubscriptionStatus.EXPIRED);
+                subscriptionRepository.save(sub);
+            }
+        }
+    }
 }
