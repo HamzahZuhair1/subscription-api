@@ -83,9 +83,9 @@ public class PlanPriceService {
     }
 
     public void deletePlanPrice(String id) {
-        PlanPrice existingPrice = planPriceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Plan price not found with id: " + id));
-        planPriceRepository.delete(existingPrice);
+        if (planPriceRepository.deleteByIdEquals(id) == 0) {
+            throw new ResourceNotFoundException("Plan price not found with id: " + id);
+        }
     }
 
 

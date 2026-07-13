@@ -53,9 +53,9 @@ public class CountryService {
     }
 
     public void deleteCountry(String id) {
-        Country existingCountry = countryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + id));
-        countryRepository.delete(existingCountry);
+        if (countryRepository.deleteByIdEquals(id) == 0) {
+            throw new ResourceNotFoundException("Country not found with id: " + id);
+        }
     }
 
 

@@ -56,9 +56,9 @@ public class PlanService {
     }
 
     public void deletePlan(String id) {
-        Plan existingPlan = planRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + id));
-        planRepository.delete(existingPlan);
+        if (planRepository.deleteByIdEquals(id) == 0) {
+            throw new ResourceNotFoundException("Plan not found with id: " + id);
+        }
     }
 
 }
