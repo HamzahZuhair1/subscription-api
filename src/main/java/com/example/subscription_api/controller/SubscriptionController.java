@@ -32,36 +32,36 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.getSubscriptionById(id));
     }
 
-    @GetMapping("/users/{userId}/subscriptions")
-    public ResponseEntity<List<SubscriptionResponseDTO>> getUserSubscriptions(@PathVariable String userId) {
-        return ResponseEntity.ok(subscriptionService.getUserSubscriptions(userId));
-    }
-
-    @PostMapping("/users/{userId}/subscriptions")
-    public ResponseEntity<SubscriptionResponseDTO> createSubscription(
-            @PathVariable String userId,
-            @Valid @RequestBody SubscriptionRequestDTO requestDTO) {
-        return new ResponseEntity<>(subscriptionService.createSubscription(userId, requestDTO), HttpStatus.CREATED);
-    }
-
-    @GetMapping("/users/{userId}/subscriptions/inActive")
-    public ResponseEntity<List<SubscriptionResponseDTO>> getInActiveSubscriptions(@PathVariable String userId) {
-        return ResponseEntity.ok(subscriptionService.getInActiveSubscriptions(userId));
-    }
-
-    @PatchMapping("/users/{userId}/subscriptions/{subId}/reNew")
-    public ResponseEntity<Void> renewSubscription(
-            @PathVariable String userId,
-            @PathVariable String subId) {
-        subscriptionService.renewSubscription(userId, subId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping("/users/{userId}/subscriptions/{subId}/cancel")
-    public ResponseEntity<Void> cancelSubscription(
-            @PathVariable String userId,
-            @PathVariable String subId) {
-        subscriptionService.cancelSubscription(userId, subId);
-        return ResponseEntity.ok().build();
-    }
+//    @GetMapping("/users/{userId}/subscriptions")
+//    public ResponseEntity<List<SubscriptionResponseDTO>> getUserSubscriptions(@PathVariable String userId) {
+//        return ResponseEntity.ok(subscriptionService.getUserSubscriptions(userId));
+//    }
+//
+//    @PostMapping("/users/{userId}/subscriptions")
+//    public ResponseEntity<SubscriptionResponseDTO> createSubscription(
+//            @PathVariable String userId,
+//            @Valid @RequestBody SubscriptionRequestDTO requestDTO) {
+//        return new ResponseEntity<>(subscriptionService.createSubscription(userId, requestDTO), HttpStatus.CREATED);
+//    }
+//
+//    @GetMapping("/users/{userId}/subscriptions/inActive")
+//    public ResponseEntity<List<SubscriptionResponseDTO>> getInActiveSubscriptions(@PathVariable String userId) {
+//        return ResponseEntity.ok(subscriptionService.getInActiveSubscriptions(userId));
+//    }
+//
+//    @PatchMapping("/users/{userId}/subscriptions/{subId}/reNew")
+//    public ResponseEntity<Void> renewSubscription(
+//            @PathVariable String userId,
+//            @PathVariable String subId) {
+//        subscriptionService.renewSubscription(userId, subId);
+//        return ResponseEntity.ok().build();
+//    }
+//
+//    @PatchMapping("/users/{userId}/subscriptions/{subId}/cancel")
+//    public ResponseEntity<Void> cancelSubscription(
+//            @PathVariable String userId,
+//            @PathVariable String subId) {
+//        subscriptionService.cancelSubscription(userId, subId);
+//        return ResponseEntity.ok().build();
+//    }
 }
