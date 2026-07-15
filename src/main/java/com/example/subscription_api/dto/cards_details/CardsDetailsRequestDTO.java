@@ -1,5 +1,6 @@
 package com.example.subscription_api.dto.cards_details;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -22,10 +23,8 @@ public class CardsDetailsRequestDTO {
     @Pattern(regexp = "^\\d{4}$", message = "Last four digits must be exactly 4 numeric digits")
     private String lastFourDigits;
 
-    @NotBlank(message = "Payment token is required")
-    private String paymentToken;
-
     @NotNull(message = "Default status must be specified")
+    @JsonProperty("isDefault")
     @Builder.Default
     private Boolean isDefault = false;
 }

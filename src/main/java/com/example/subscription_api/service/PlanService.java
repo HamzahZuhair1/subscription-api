@@ -23,11 +23,19 @@ public class PlanService {
         Plan plan = Plan.builder()
                 .name(requestDTO.getName())
                 .description(requestDTO.getDescription())
-                .isActive(requestDTO.getIsActive())
+                .active(requestDTO.getActive())
                 .build();
 
         Plan savedPlan = planRepository.save(plan);
-        return planMapper.toResponseDTO(savedPlan);
+
+        PlanResponseDTO dto = planMapper.toResponseDTO(savedPlan);
+
+        System.out.println("Entity active = " + savedPlan.isActive());
+        System.out.println("DTO active = " + dto.isActive());
+
+        return dto;
+
+//        return planMapper.toResponseDTO(savedPlan);
     }
 
     public List<PlanResponseDTO> getAllPlans() {
@@ -49,7 +57,7 @@ public class PlanService {
 
         existingPlan.setName(requestDTO.getName());
         existingPlan.setDescription(requestDTO.getDescription());
-        existingPlan.setActive(requestDTO.getIsActive());
+        existingPlan.setActive(requestDTO.getActive());
 
         Plan updatedPlan = planRepository.save(existingPlan);
         return planMapper.toResponseDTO(updatedPlan);

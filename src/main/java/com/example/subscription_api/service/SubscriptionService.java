@@ -13,7 +13,7 @@ import com.example.subscription_api.repository.CardsDetailsRepository;
 import com.example.subscription_api.repository.PlanPriceRepository;
 import com.example.subscription_api.repository.SubscriptionRepository;
 import com.example.subscription_api.repository.UserRepository;
-import com.example.subscription_api.util.DateTimeUtil; // <-- استدعاء الـ Util
+import com.example.subscription_api.util.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,12 +55,20 @@ public class SubscriptionService {
     }
 
     @Transactional
-    public SubscriptionResponseDTO createSubscription(String userId, SubscriptionRequestDTO requestDTO) {
+    public SubscriptionResponseDTO createSubscription(String userId, String country, SubscriptionRequestDTO requestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (subscriptionRepository.existsByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)) {
+            throw new IllegalStateException("User already has an active subscription");
+        }
+
         PlanPrice planPrice = planPriceRepository.findById(requestDTO.getPlanPriceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Plan Price not found"));
+
+        if (!planPrice.getCountry().getCode().equalsIgnoreCase(country)) {
+            throw new IllegalArgumentException("This subscription plan is not available in your country (" + country + ")");
+        }
 
         CardsDetails cardsDetails = cardsDetailsRepository.findById(requestDTO.getCardDetailsId())
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));

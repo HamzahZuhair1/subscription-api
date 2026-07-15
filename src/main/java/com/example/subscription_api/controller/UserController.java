@@ -110,8 +110,9 @@ public class UserController {
     @PostMapping("/{userId}/subscriptions")
     public ResponseEntity<SubscriptionResponseDTO> createSubscription(
             @PathVariable String userId,
+            @RequestHeader("country") String country,
             @Valid @RequestBody SubscriptionRequestDTO requestDTO) {
-        return new ResponseEntity<>(subscriptionService.createSubscription(userId, requestDTO), HttpStatus.CREATED);
+        return new ResponseEntity<>(subscriptionService.createSubscription(userId, country, requestDTO), HttpStatus.CREATED);
     }
 
     @GetMapping("/{userId}/subscriptions/inActive")

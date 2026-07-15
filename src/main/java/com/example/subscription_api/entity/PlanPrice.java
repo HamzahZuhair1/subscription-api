@@ -39,5 +39,5 @@ public class PlanPrice {
     private String currency;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean active;
 }

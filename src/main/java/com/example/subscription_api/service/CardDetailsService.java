@@ -55,7 +55,6 @@ public class CardDetailsService {
                 .cardHolderName(requestDTO.getCardHolderName())
                 .cardBrand(requestDTO.getCardBrand())
                 .lastFourDigits(requestDTO.getLastFourDigits())
-                .paymentToken(requestDTO.getPaymentToken())
                 .isDefault(shouldBeDefault)
                 .build();
 
@@ -78,7 +77,6 @@ public class CardDetailsService {
         existingCard.setCardHolderName(requestDTO.getCardHolderName());
         existingCard.setCardBrand(requestDTO.getCardBrand());
         existingCard.setLastFourDigits(requestDTO.getLastFourDigits());
-        existingCard.setPaymentToken(requestDTO.getPaymentToken());
 
         CardsDetails updatedCard = cardsDetailsRepository.save(existingCard);
         return cardsDetailsMapper.toResponseDTO(updatedCard);

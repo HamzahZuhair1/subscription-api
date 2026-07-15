@@ -36,5 +36,5 @@ public class PlanPriceRequestDTO {
 
     @NotNull(message = "Active status must be specified")
     @Builder.Default
-    private Boolean isActive = true;
+    private Boolean active = true;
 }

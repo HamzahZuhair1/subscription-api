@@ -16,5 +16,5 @@ public class PlanPriceResponseDTO {
     private CycleUnit cycleUnit;
     private long amount;
     private String currency;
-    private boolean isActive;
+    private boolean active;
 }

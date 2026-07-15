@@ -42,7 +42,7 @@ public class PlanPriceService {
                 .cycleUnit(requestDTO.getCycleUnit())
                 .amount(requestDTO.getAmount())
                 .currency(requestDTO.getCurrency())
-                .isActive(requestDTO.getIsActive())
+                .active(requestDTO.getActive())
                 .build();
 
         PlanPrice savedPrice = planPriceRepository.save(planPrice);
@@ -76,7 +76,7 @@ public class PlanPriceService {
         existingPrice.setCycleUnit(requestDTO.getCycleUnit());
         existingPrice.setAmount(requestDTO.getAmount());
         existingPrice.setCurrency(requestDTO.getCurrency());
-        existingPrice.setActive(requestDTO.getIsActive());
+        existingPrice.setActive(requestDTO.getActive());
 
         PlanPrice updatedPrice = planPriceRepository.save(existingPrice);
         return planPriceMapper.toResponseDTO(updatedPrice);

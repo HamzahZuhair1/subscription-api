@@ -1,5 +1,6 @@
 package com.example.subscription_api.dto.plan;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -17,5 +18,5 @@ public class PlanRequestDTO {
     private String description;
 
     @NotNull(message = "Plan active status must be specified")
-    private Boolean isActive;
+    private Boolean active;
 }
